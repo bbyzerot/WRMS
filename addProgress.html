@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>添加进展</title>
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="css/app.css" />
+		<link rel="stylesheet" href="css/mui.picker.min.css" />
+		<script src="js/mui.min.js"></script>
+		<script src="js/myApp.js" ></script>
+		<script src="js/mui.picker.min.js "></script> 	
+		<script type="text/javascript" charset="UTF-8">
+		
+mui.init({
+	swipeBack: true, //关闭右滑关闭功能,
+			});
+		</script>
+	</head>
+	<style>		
+			
+			.conFill {
+				text-align:center;
+				padding: 0px;
+				font-size: 16px;
+			}
+			.mui-popover {
+				height: 300px;
+			}
+						.mui-input-row label {
+width: 120px;
+padding: 10px 0 10px 5px;
+}
+.mui-input-row input {
+float: left !important;
+}
+		</style>
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<!--<a id="saveProgress" class="mui-icon mui-icon-paperplane mui-pull-right"></a>-->
+			<h1 class="mui-title">新增进展</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-content-padded" style="margin: 5px;">
+				<form class="mui-input-group">
+					<div>
+						<h4 style="text-align: center;padding: 10px;">填写进展信息</h4>
+					</div>	
+					<div class="mui-input-row">
+						<label>执行日期</label>
+						<label id="resultStart" style="width: 50%;text-align: left;padding: 11px 0px;color: darkgrey;">请选择日期</label>
+						<button type="button" id='selectStartDate' data-options='{"type":"date","beginYear":2016,"endYear":2020}' class="btn mui-btn mui-btn-primary" >选择</button>					
+					</div>
+					<div class="mui-input-row">
+						<label>所属任务</label>
+						<label id="missionBelong" style="width: 50%;text-align: left;padding: 11px 0px;color: darkgrey;">请选择所属任务</label>
+						<a href="#middlePopover" class="mui-btn mui-btn-primary">选择</a>
+					</div>
+					
+					<div class="mui-input-row">
+						<label>完成进度</label>
+						
+						<input type="number" placeholder="请输入0-100之间数字" id ="progressRate">
+					</div>
+					<div class="mui-input-row" style="height: 120px;">
+						<label>进展描述</label>
+						<textarea id="description" rows="5" placeholder="请填写任务描述"></textarea>
+					</div>
+					<div class="mui-button-row">
+						<!--<button type="button" class="mui-btn mui-btn-primary" onclick="return false;" style="width: 30%;">提交</button>-->
+						<button type="button" class="mui-btn mui-btn-primary" style="width: 30%;" id = "submit">提交</button>
+					</div>
+				</form>
+			</div>
+			<div class="mui-content-padded" style="margin: 5px;">
+				<form class="mui-input-group">
+					<div>
+						<h4 style="text-align: center;padding: 10px;">所属任务信息</h4>
+					</div>
+					<div class="mui-input-row">
+						<label>任务名称</label>
+						<a id="missionName" class="conFill"></a>
+					</div>
+					<div class="mui-input-row">
+						<label>完成率</label>
+						<a id="missRate" class="conFill"></a>
+					</div>
+					<div class="mui-input-row">
+						<label>上级任务</label>
+						<a id="missionPName" class="conFill"></a>
+					</div>
+					<div class="mui-input-row">
+						<label>预计开始时间</label>
+						<a id="startD_p" class="conFill"></a>
+					</div>
+					<div class="mui-input-row">
+						<label>预计结束时间</label>
+						<a id="endD_p" class="conFill"></a>
+					</div>
+					<div class="mui-input-row" style="height: 120px;">
+						<label>任务描述</label>
+						<textarea id="missionDec" rows="5" readonly="readonly" placeholder="无描述信息"></textarea>
+					</div>
+				</form>
+			</div>
+			
+		</div>
+		<div id="middlePopover" class="mui-popover">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view" id="missionList">
+ 
+					</ul>
+				</div>
+			</div>
+
+		</div>
+<!--		<script src="js/mui.min.js"></script>-->
+		<!--<script src="js/mui.picker.js"></script>
+		<script src="js/mui.dtpicker.js"></script>-->
+		
+		
+		<script>
+			(function($) {
+				$.init();
+				mui.plusReady(function(){
+									//				选择预计日期
+				var resultS = $('#resultStart')[0];			
+				var btn = document.getElementById('selectStartDate');
+		
+					var curY = new Date().getFullYear();
+			var attrStr = '{"type":"date","beginYear":' + (curY -1) + ',"endYear": ' + (curY + 1) + '}';
+			btn.setAttribute('data-options', attrStr);
+			
+					btn.addEventListener('tap', function() {
+					var optionsJson = this.getAttribute('data-options') || '{}';
+					var options = JSON.parse(optionsJson);
+					var id = this.getAttribute('id');
+					/*
+					 * 首次显示时实例化组件
+					 * 示例为了简洁，将 options 放在了按钮的 dom 上
+					 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+					 */
+					var picker = new $.DtPicker(options);
+					picker.show(function(rs) {
+						/*
+						 * rs.value 拼合后的 value
+						 * rs.text 拼合后的 text
+						 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+						 * rs.m 月，用法同年
+						 * rs.d 日，用法同年
+						 * rs.h 时，用法同年
+						 * rs.i 分（minutes 的第二个字母），用法同年
+						 */
+							resultS.innerText = rs.text;						
+						/* 
+						 * 返回 false 可以阻止选择框的关闭
+						 * return false;
+						 */
+						/*
+						 * 释放组件资源，释放后将将不能再操作组件
+						 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+						 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+						 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+						 */
+						console.log("进入新增进展啦~!");
+						var userID = myApp.userID;				
+						var dateT = document.getElementById('resultStart').innerText;  //开始执行时间
+										 //必须按照格式来 不能为空,否则报 Unexpected token o
+						var taskBody = "\"{'ParaList':[{'Date':'" + dateT + "','UserID':'" + userID + "'}],'FunName':  'GetMissionInfo'}\""
+						console.log(taskBody);
+						myApp.XMLpostRequest(url,taskBody, myApp.getMissionList);
+						
+						picker.dispose();
+					});
+				}, false);
+					
+				
+//实时监听-- 只能输入数字
+			document.getElementById("progressRate").addEventListener('keyup',function() {
+			//先判断所属任务是否已选择
+			var strBM = document.getElementById("missionBelong").innerText;
+			if (strBM == '请选择所属任务') {//未选择所属任务
+				console.log("请选择所属任务");
+				this.value = '';
+				mui.alert("请先选择所属任务!");
+			}else{//如果已选择所属任务
+							//完成度只能输入数字
+			this.value = this.value.replace(/[^\d.]/g, '');
+			if (this.value > 100 - document.getElementById("missRate").innerText.replace(/[^\d.]/g, '')) {
+				this.value = 100 - document.getElementById("missRate").innerText.replace(/[^\d.]/g, '');
+				//mui.toast('当前所属任务的 完成率')
+				mui.alert('新进展完成进度不要超过所属任务剩余的完成率(' + (100 - document.getElementById("missRate").innerText.replace(/[^\d.]/g, "")) + '%)!' );
+			}
+			//console.log('this.value ' + this.value);
+			}
+
+			
+
+		});
+										
+				
+				//提交事件
+			document.getElementById("submit").addEventListener('tap',function(){
+				var missionID = TempMissionID;		//所属任务ID
+				//TempMissionID = null;
+				var prog_dur = '0'; 												//完成时长
+				var prog_r = document.getElementById('progressRate').value;			//完成进度0-100
+				var prog_d = document.getElementById('resultStart').innerText;  	//执行日期
+				var perf_s = '0';													//执行状态
+				var des = document.getElementById('description').value; 			//进展描述
+				var cond = '0';														//进展情况
+				var cre_p = myApp.userID;												//创建人ID
+				var cre_d = myApp.get_Today();										//创建日期
+
+				
+				//任务名称为空不行!
+				if(prog_d == "" || prog_d == null){
+					mui.toast('请首先选择执行日期');
+				  	return false;					
+				}else if (missionID == "" || missionID == null) {
+					mui.toast('请选择所属任务!');
+					return false
+				}else if (prog_r == "" || prog_r > 100 || prog_r < 0) {
+					mui.toast('进度数字填写不规范');
+					return false
+				}else{				
+				//新建任务 请求body体(MISSION_ID:所属任务ID,PROGRESS_DURATION:时长,PROGRESS_RATE:完成进度,PROGRESS_DATE:执行时间,PERFORMED_STATE:执行状态,
+//					DESCRIPTION:进展描述,CONDITION:情况,CRE_PRE:创建人ID,CRE_DATE创建日期)
+var reg = /^\W+/g;
+				var progBody = "\"{'ParaList':[{'ProgressDetail':[{'MISSION_ID':'" + 
+								missionID.replace(reg,'') + 
+								"','PROGRESS_DURATION':'" +
+								prog_dur + 
+								"','PROGRESS_RATE':'" +
+								prog_r + 
+								"','PROGRESS_DATE':'" + 
+								prog_d + 
+								"','PERFORMED_STATE':'" + 
+								perf_s +
+								"','DESCRIPTION':'" + 
+								des + 
+								"','CONDITION':'" + 
+								cond + 
+								"','CRE_PRE':'" +
+								cre_p + 
+								"','CRE_DATE':'" + 
+								cre_d + 
+								"'}]}],'FunName':'ProgressAdd'}\""
+								console.log(progBody);
+				myApp.XMLpostRequestNofun(url, progBody);
+		//获得列表界面的webview
+		var list = plus.webview.getWebviewById('reportOfDay.html');
+		//触发列表界面的自定义事件（refresh）,从而进行数据刷新
+		mui.fire(list,'refreshProList');
+				}
+				
+			});
+				});
+		//屏蔽前往 键	
+		mui('.mui-input-row').on('keydown','input',function(e){
+        if(13 == e.keyCode){
+            //点击了“搜索” 
+            console.log("按了 前往");
+            //mui.trigger(document.getElementById("submit"),'tap');
+            return false;
+            
+        }
+   
+			});
+
+			
+			
+			
+			})(mui);
+			
+			mui('.mui-scroll-wrapper').scroll();
+			mui('body').on('shown', '.mui-popover', function(e) {
+				console.log('我出来了~!!', e.detail.id);//detail为当前popover元素
+				console.log(document.getElementById('resultStart').innerText == '');
+				var reg = /^\W+/g;
+				if (document.getElementById('resultStart').innerText.replace(reg,'') == ''){
+					document.getElementById("missionList").innerHTML = '<h2>请先选择"执行日期"!<\h2>'
+					//mui.toast("请先选择执行日期!");
+				}
+				
+			});
+			mui('body').on('hidden', '.mui-popover', function(e) {
+				console.log('hidden', e.detail.id);//detail为当前popover元素
+			});
+		</script>
+		
+	</body>
+
+</html>

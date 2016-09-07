@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>任务详情</title>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="css/app.css" />
+		<link rel="stylesheet" href="css/mui.picker.min.css" />
+		<script src="js/mui.min.js"></script>
+		<script src="js/myApp.js" ></script>
+		<script src="js/mui.picker.min.js "></script> 	
+		<script type="text/javascript" charset="UTF-8">
+			mui.init({
+				swipeBack: true, //关闭右滑关闭功能,
+				gestureConfig: {
+					tap: true, //默认为true
+					doubletap: false, //默认为false
+					longtap: false, //默认为false
+					swipe: true, //默认为true
+					drag: true, //默认为true
+					hold: false, //默认为false，不监听
+					release: false //默认为false，不监听
+				}
+			});
+		</script>
+	</head>
+	<style>
+			.mui-popover {
+			height: 300px;
+		}
+		.mui-input-row label {
+			width: 120px;
+			padding: 10px 0 10px 5px;
+		}
+		
+		.mui-input-row input {
+			float: left !important;
+		}
+		
+
+	</style>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<a class="mui-icon mui-pull-right" style="font-size: 17px; top: 5px;" id="editBtn">编辑</a>
+			<h1 class="mui-title">任务详情</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-content-padded" style="margin: 5px;">
+				<form class="mui-input-group">
+					<div class="mui-input-row">
+						<label class="missName">任务名称</label>
+						<input type="text" readonly="readonly" id="MissionName" class="canEdit">
+					</div>
+					<div class="mui-input-row">
+						<label>上级任务</label>
+						<label id="MissionP" style="width: 50%;text-align: left;padding: 11px 0px;" class="canEdit"></label>
+						<a href="#middlePopover" class="mui-btn mui-btn-primary" style="display: none;">选择</a>
+					</div>
+					<div class="mui-input-row">
+						<label>预计开始时间</label>
+						<label id="MissionPStartTime" style="width: 50%;text-align: left;padding: 11px 0px;" class="canEdit"></label>
+						<button type="button" id='selectStartDate'  data-options='{"type":"date","beginYear":2014,"endYear":2016}' class="btn mui-btn mui-btn-primary" style="display: none;">选择</button>
+					</div>
+					<div class="mui-input-row">
+						<label>预计结束时间</label>
+						<label id="MissionPEedTime" style="width: 50%;text-align: left;padding: 11px 0px;" class="canEdit"></label>
+						<button type="button" id='selectEndDate' data-options='{"type":"date","beginYear":2014,"endYear":2016}' class="btn mui-btn mui-btn-primary" style="display: none;">选择</button>
+					</div>
+					<div class="mui-input-row">
+						<label>实际开始时间</label>
+						<input type="text" readonly="readonly" id="MissionRStartTime" class="canNotEdit">
+					</div>
+					<div class="mui-input-row">
+						<label>实际结束时间</label>
+						<input type="text" readonly="readonly" id="MissionREndTime" class="canNotEdit">
+					</div>
+					<div class="mui-input-row">
+						<label>完成率</label>
+						<input type="text" readonly="readonly" id="MissionRate" class="canNotEdit">
+					</div>
+					<div class="mui-input-row">
+						<label>任务状态</label>
+						<input type="text" readonly="readonly" id="MissionState" class="canNotEdit">
+					</div>
+					<div class="mui-input-row" style="height: 120px;">
+						<label>任务描述</label>
+						<textarea id="description" rows="5" readonly="readonly" class="canEdit"></textarea>
+					</div>
+
+				</form>
+			</div>
+
+			<div>
+				<p id="PLTitle" style="text-align: center; font-size: 17px;">进展列表:</p>
+			</div>
+			<div id="progressList">
+
+			</div>
+
+		</div>
+		<div id="middlePopover" class="mui-popover">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view" id="missionList">
+
+					</ul>
+				</div>
+			</div>
+
+		</div>
+		<!--		<script src="js/mui.min.js"></script>-->
+		<!--<script src="js/mui.picker.js"></script>-->
+		<!--<script src="js/mui.dtpicker.js"></script>-->
+		<!--<script src="js/myApp.js"></script>-->
+		<script>
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				console.log(self.crePre);
+				//如果是自己的任务,则可以编辑.否则不可以
+				if(myApp.userID != self.crePre) {
+					document.getElementById("editBtn").style.display = 'none';
+				}
+				//选择时间插件
+				var resultS = document.getElementById("MissionPStartTime");
+				var resultE = document.getElementById("MissionPEedTime");
+				var curY = new Date().getFullYear();
+				var attrStr = '{"type":"date","beginYear":' + (curY - 1) + ',"endYear": ' + (curY + 1) + '}';
+				document.getElementById("selectStartDate").setAttribute('data-options', attrStr);
+				document.getElementById("selectEndDate").setAttribute('data-options', attrStr);
+				mui('.mui-input-row button').each(function(i, btn) {
+					//console.log("点时间了111111111111111");
+					//console.log("22222");
+					btn.addEventListener('tap', function() {
+						//console.log("33333333");
+						var optionsJson = this.getAttribute('data-options') || '{}';
+						var options = JSON.parse(optionsJson);
+						var id = this.getAttribute('id');
+						/*
+						 * 首次显示时实例化组件
+						 * 示例为了简洁，将 options 放在了按钮的 dom 上
+						 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+						 */
+						var picker = new mui.DtPicker(options);
+						picker.show(function(rs) {
+							/*
+							 * rs.value 拼合后的 value
+							 * rs.text 拼合后的 text
+							 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+							 * rs.m 月，用法同年
+							 * rs.d 日，用法同年
+							 * rs.h 时，用法同年
+							 * rs.i 分（minutes 的第二个字母），用法同年
+							 */
+							if(id == 'selectStartDate') {
+								resultS.innerText = rs.text;
+							} else {
+								resultE.innerText = rs.text;
+							}
+
+							/* 
+							 * 返回 false 可以阻止选择框的关闭
+							 * return false;
+							 */
+							/*
+							 * 释放组件资源，释放后将将不能再操作组件
+							 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+							 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+							 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+							 */
+							picker.dispose();
+						});
+					}, false);
+
+				});
+				//选择时间插件结束
+				//				console.log(self.name);
+				//console.log(self.missonP);
+				//				console.log(self.startDP);
+				//				console.log(self.endDP);
+				//				console.log(self.startDR);
+				//				console.log(self.endDR);
+				//				console.log(self.missionRate);
+				//				console.log(self.state);
+				//				console.log(self.progressObj);
+
+				if(self.missionPN == '') {
+					document.getElementById('MissionP').innerText = '无上级任务';
+				} else {
+					document.getElementById('MissionP').innerText = self.missionPN;
+				}
+				document.getElementsByClassName('missName').id = self.missionId;
+				console.log(document.getElementsByClassName('missName').id);
+				//任务基本信息铺设
+				document.getElementById('MissionName').value = self.name;
+				document.getElementById('MissionPStartTime').innerText = self.startDP.split(' ')[0];
+				document.getElementById('MissionPEedTime').innerText = self.endDP.split(' ')[0];
+				document.getElementById('MissionRStartTime').value = self.startDR != '' ? self.endDR.split(' ')[0] : '暂无数据';
+				document.getElementById('MissionREndTime').value = self.endDR != '' ? self.endDR.split(' ')[0] : '暂无数据';
+				document.getElementById('MissionRate').value = (self.missionRate != '') ? self.missionRate + '%' : '0%';
+				document.getElementById('MissionState').value = self.state != 0 ? '完成' : '未完成';
+				document.getElementById('description').innerHTML = self.des != '' ? self.des : '暂无描述';
+
+				//进展列表信息铺设
+				if(self.progressObj == '') {
+					//console.log(item.MISSION_ID);
+					myApp.clearAllChild(document.getElementById("progressList"));
+					document.getElementById("progressList").innerHTML = '<p style="color:gray"><span style="font-size:16px;">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp此项目暂无进展!如需添加请在"填写日报"中添加!</span></p>';
+
+				} else {
+					myApp.clearAllChild(document.getElementById("progressList"));
+					mui.each(self.progressObj, function(index, item) {
+						//	console.log(item.MISSION_ID);
+						creatListDOM('progressList', item);
+					});
+				}
+
+				//编辑按钮
+				document.getElementById('editBtn').addEventListener('tap', function() {
+					if(this.innerHTML == '编辑') {
+						this.innerHTML = '保存';
+						mui.toast('进入编辑状态!');
+						//进入此页面后铺设今天所有任务及进展的列表#missionList
+						var taskBody = "\"{'ParaList':[{'MissionID':'" + document.getElementsByClassName("missName").id + "','UserID':'" + myApp.userID + "'}],'FunName':  'GetMissionInfoForPMs'}\""
+						console.log(taskBody);
+						myApp.XMLpostRequest(url, taskBody, myApp.getMissionList);
+						mui('.mui-input-row .mui-btn-primary').each(function() {
+							this.style.display = '';
+						});
+						mui('.canEdit').each(function() {
+							this.style.color = "darkgray";
+							//this.style.fontWeight="bold";
+							this.removeAttribute("readonly");
+						});
+
+					} else {
+						this.innerHTML = '编辑';
+						mui.toast('退出编辑状态!');
+						mui('.mui-input-row .mui-btn-primary').each(function() {
+							this.style.display = 'none';
+						});
+						mui('.canEdit').each(function() {
+							this.style.color = "black";
+							//this.style.fontWeight="";
+							this.setAttribute('readonly', 'readonly');
+						});
+						//提示框
+						var btnArray = ['否', '是'];
+						mui.confirm('是否确认修改？', '系统提示', btnArray, function(e) {
+							if(e.index == 1) {
+								var endDP = document.getElementById('MissionPEedTime').value;
+								var name = document.getElementById('MissionName').value;
+								var des = document.getElementById('description').value;
+								var startDP = document.getElementById('MissionPStartTime').innerText;
+								var endDP = document.getElementById('MissionPEedTime').innerText;
+								var missionP = 0; //后期加
+								var getday = myApp.get_Today();
+								var modP = myApp.userID; //登录人
+								var reportbody = "\"{'ParaList':[{'MissionDetail':[{'MISSION_ID':'" +
+									self.missionId +
+									"','MISSION_NAME':'" +
+									name +
+									"','DESCRIPTION':'" +
+									des +
+									"','STRATDATE_PREDICT':'" +
+									startDP +
+									"','ENDDATE_PREDICT':'" +
+									endDP +
+									"','MISSION_PID':'" +
+									missionP +
+									"','MOD_DATE':'" +
+									getday +
+									"','MOD_PRE':'" +
+									modP +
+									"'}]}],'FunName':  'MissionUpdate'}\""
+								myApp.XMLpostRequestNofun(url, reportbody);
+								console.log(reportbody);
+							} else {
+								mui.toast('取消保存');
+							}
+						});
+
+					}
+				});
+
+			});
+			mui('.mui-scroll-wrapper').scroll();
+			mui('body').on('shown', '.mui-popover', function(e) {
+				console.log('shown', e.detail.id); //detail为当前popover元素
+			});
+			mui('body').on('hidden', '.mui-popover', function(e) {
+				console.log('hidden', e.detail.id); //detail为当前popover元素
+			});
+			//删除进展返回后自动刷新本任务详情
+			window.addEventListener('refreshMissionDetail', function(event) {
+				//获得事件参数
+				//var id = event.detail.id;
+				//根据id向服务器请求新闻详情
+				console.log("进入自定义事件");
+				mui.later(function() {
+					//var reg = /^\W+/g;
+					var reportbody = "\"{'ParaList':[{'MissionID':'" + document.getElementsByClassName('missName').id + "'}],'FunName': 'GetMissionInfoByID'}\"";
+					console.log(reportbody);
+					myApp.XMLpostRequest(url, reportbody, myApp.RefreshMissionDetail);
+				}, 500);
+
+			});
+
+			mui('.mui-input-row').on('keydown', 'input', function(e) {
+				if(13 == e.keyCode) {
+					//点击了“搜索” 
+					console.log("按了 前往");
+					//mui.trigger(document.getElementById("submit"),'tap');
+					return false;
+
+				}
+
+			});
+		</script>
+
+	</body>
+
+</html>

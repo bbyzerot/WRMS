@@ -1,0 +1,130 @@
+{
+	"index.html": {
+		"resources": [
+			"js/qiao.js",
+			"js/jquery-1.11.2.min.js",
+			"js/mui.min.js",
+			"fonts/mui.ttf",
+			"css/mui.min.css",
+			"reportOfWeek.html",
+			"reportOfDay.html",
+			"js/myApp.js"
+		],
+		"refer": [
+			"reportOfWeek.html",
+			"calendarList.html",
+			"reportOfDay.html"
+		]
+	},
+	"calendarList.html": {
+		"resources": [
+			"js/mui.min.js",
+			"css/mui.min.css",
+			"js/MCalendar.js",
+			"css/MCalendar.css",
+			"fonts/mui.ttf",
+			"js/myApp.js"
+		],
+		"refer": [
+			"addMission.html",
+			"missionDetail.html"
+		]
+	},
+	"reportOfWeek.html": {
+		"resources": [
+			"js/mui.min.js",
+			"fonts/mui.ttf",
+			"css/mui.min.css",
+			"css/app.css",
+			"js/myApp.js",
+			"js/mui.picker.min.js",
+			"css/mui.picker.min.css"
+		],
+		"refer": [
+			"missionDetail.html",
+			"progressDetail.html"
+		]
+	},
+	"reportOfDay.html": {
+		"resources": [
+			"js/mui.min.js",
+			"css/mui.min.css",
+			"js/mui.picker.js",
+			"js/mui.picker.min.js",
+			"js/mui.dtpicker.js",
+			"css/mui.picker.min.css",
+			"fonts/mui.ttf",
+			"css/mui.dtpicker.css",
+			"css/mui.picker.css",
+			"css/app.css",
+			"/css/mui.min.css",
+			"/css/mui.picker.min.css",
+			"/css/app.css",
+			"js/myApp.js"
+		],
+		"refer": [
+			"addMission.html",
+			"addProgress.html",
+			"missionDetail.html",
+			"progressDetail.html"
+		]
+	},
+	"addMission.html": {
+		"resources": [
+			"fonts/mui.ttf",
+			"js/mui.picker.min.js",
+			"js/mui.min.js",
+			"css/mui.min.css",
+			"addMission.html",
+			"css/app.css",
+			"css/mui.picker.min.css",
+			"js/myApp.js"
+		],
+		"refer": [
+			"addMission.html"
+		]
+	},
+	"addProgress.html": {
+		"resources": [
+			"js/myApp.js",
+			"js/mui.picker.min.js",
+			"css/app.css",
+			"js/mui.min.js",
+			"fonts/mui.ttf",
+			"css/mui.min.css",
+			"css/mui.picker.min.css",
+			"addProgress.html"
+		],
+		"refer": [
+			"addProgress.html"
+		]
+	},
+	"missionDetail.html": {
+		"resources": [
+			"css/app.css",
+			"js/mui.min.js",
+			"css/mui.min.css",
+			"fonts/mui.ttf",
+			"css/mui.picker.min.css",
+			"js/myApp.js",
+			"missionDetail.html",
+			"js/mui.picker.js",
+			"js/mui.picker.min.js"
+		],
+		"refer": [
+			"progressDetail.html",
+			"missionDetail.html"
+		]
+	},
+	"progressDetail.html": {
+		"resources": [
+			"css/app.css",
+			"js/mui.min.js",
+			"fonts/mui.ttf",
+			"css/mui.min.css",
+			"js/myApp.js",
+			"js/mui.picker.min.js",
+			"css/mui.picker.min.css"
+		]
+	}
+}

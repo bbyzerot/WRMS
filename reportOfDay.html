@@ -1,0 +1,220 @@
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>填写日报</title>
+		<!--标准mui.css-->
+		<link rel="stylesheet" href="css/mui.min.css">
+		<!--App自定义的css-->
+		<!--<link rel="stylesheet" type="text/css" href="css/app.css" />-->
+		<!--<link href="/css/mui.picker.css" rel="stylesheet" />
+		<link href="/css/mui.dtpicker.css" rel="stylesheet" />-->
+		<link rel="stylesheet" type="text/css" href="css/mui.picker.min.css" />
+
+		<style>
+			html,
+			body,
+			.mui-content {
+				height: 0px;
+				margin: 0px;
+				background-color: #;
+			}
+			
+			h5.mui-content-padded {
+				margin-left: 3px;
+				margin-top: 20px !important;
+			}
+			
+			h5.mui-content-padded:first-child {
+				margin-top: 12px !important;
+			}
+			
+			.mui-btn {
+				font-size: 16px;
+				padding: 8px;
+				margin: 3px;
+			}
+			
+			* {
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+			}
+
+		</style>
+
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a id="addProgress" class="mui-icon mui-icon-compose mui-pull-right"></a>
+			<h1 class="mui-title ">填写日报</h1>
+		</header>
+
+		<div class="mui-content ">
+
+			<div class="mui-content-padded ">
+				<button id='selectDate' data-options='{"type":"date","beginYear":2014,"endYear":2016}' class="btn mui-btn mui-btn-block "></button>
+			</div>
+
+						<!--<div class="mui-content-padded ">-->
+
+				<!--<div id="scroll1" class="mui-scroll-wrapper">-->
+				<!--<div class="mui-scroll">-->
+					<ul class="mui-table-view">
+						<li class="mui-table-view-cell mui-collapse">
+							<a class="mui-navigate-right" href="#">计划</a>
+							<div class="mui-collapse-content">
+								<ul class="mui-table-view mui-table-view-chevron" id="planPro">
+									<!--计划进展...-->
+								</ul>
+							</div>
+						</li>
+						<li class="mui-table-view-cell mui-collapse">
+							<a class="mui-navigate-right" href="#">实际</a>
+							<div class="mui-collapse-content">
+								<ul class="mui-table-view" id="realPro">
+									<!--实际进展...-->
+								</ul>
+							</div>
+						</li>
+					</ul>
+				<!--</div>-->
+				<!--</div>-->
+
+			<!--</div>-->
+		</div>
+		<script src="js/mui.min.js "></script>
+		<!--<script src="js/mui.picker.js "></script>
+		<script src="js/mui.dtpicker.js "></script>-->
+		<script src="js/myApp.js"></script>
+		<script src="js/mui.picker.min.js "></script>
+		<script>
+			(function($) {
+				$.init();
+				$('.mui-scroll-wrapper').scroll({
+					indicators: false //是否显示滚动条
+				});
+				//上来就请求今天的信息
+			document.getElementById("selectDate").innerHTML = "所选日期为:" + myApp.get_Today();
+			//data-options='{"type":"date","beginYear":2014,"endYear":2016}'
+			
+				//请求当前日期下计划任务
+				var reportbody = "\"{'ParaList':[{'Date':'" + myApp.get_Today() + "','UserID':'" + myApp.userID + "'}],'FunName':'GetMissionDetail'}\"";
+				myApp.XMLpostRequest(url, reportbody, myApp.getMissionList);
+
+				//请求当前日期下实际进展
+				var reportbody = "\"{'ParaList':[{'Date':'" + myApp.get_Today() + "','UserID':'" + myApp.userID + "','Refresh':'0'} ], 'FunName': 'GetProgressDetail'}\"";
+				console.log(reportbody);
+				myApp.XMLpostRequest(url, reportbody, myApp.GetProgressList);
+
+				//				选择日期
+				var btn = document.getElementById("selectDate");
+				btn.addEventListener('tap', function() {
+					var optionsJson = this.getAttribute('data-options') || '{}';
+					var options = JSON.parse(optionsJson);
+					var id = this.getAttribute('id');
+					var userId = myApp.userID;
+					/*
+					 * 首次显示时实例化组件
+					 * 示例为了简洁，将 options 放在了按钮的 dom 上
+					 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+					 */
+					var picker = new $.DtPicker(options);
+					picker.show(function(rs) {
+						/*
+						 * rs.value 拼合后的 value
+						 * rs.text 拼合后的 text
+						 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+						 * rs.m 月，用法同年
+						 * rs.d 日，用法同年
+						 * rs.h 时，用法同年
+						 * rs.i 分（minutes 的第二个字母），用法同年
+						 */
+						btn.innerText = '所选日期为: ' + rs.text;
+						//请求当前日期下计划任务
+						var reportbody = "\"{'ParaList':[{'Date':'" + rs.text + "','UserID':'" + myApp.userID + "'}],'FunName':'GetMissionDetail'}\"";
+						myApp.XMLpostRequest(url, reportbody, myApp.getMissionList);
+
+						//请求当前日期下实际进展
+						var reportbody = "\"{'ParaList':[{'Date':'" + rs.text + "','UserID':'" + myApp.userID + "','Refresh':'0'} ], 'FunName': 'GetProgressDetail'}\"";
+						console.log(reportbody);
+						myApp.XMLpostRequest(url, reportbody, myApp.GetProgressList);
+
+						/* 
+						 * 返回 false 可以阻止选择框的关闭
+						 * return false;
+						 */
+						/*
+						 * 释放组件资源，释放后将将不能再操作组件
+						 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+						 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+						 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+						 */
+						picker.dispose();
+					});
+				}, false);
+
+
+				//							添加进展点击事件:进入添加进展页面
+				$('#addProgress')[0].addEventListener('tap', function() {
+					console.log(mui.os.iphone);
+					console.log(mui.os.ios);
+					//console.log(mui.os.android);
+				if (mui.os.android) {
+					var strNerPage = "addProgress.html";
+				}else if(mui.os.ios){
+					var strNerPage = encodeURI("addProgress.html");
+				}
+					mui.openWindow({
+						id: "addProgress.html",
+						url: strNerPage,
+						styles: {
+							top: '0px', //新页面顶部位置
+							bottom: '0px', //新页面底部位置
+							popGesture: 'close'
+						},
+						extras: {
+							//自定义扩展参数，可以用来处理页面间传值
+						},
+						createNew: false, //是否重复创建同样id的webview，默认为false:不重复创建，直接显示
+						show: {
+							autoShow: true, //页面loaded事件发生后自动显示，默认为true
+							//页面显示动画，默认为”slide-in-right“；
+							//页面动画持续时间，Android平台默认100毫秒，iOS平台默认200毫秒；
+						},
+						waiting: {
+							autoShow: true, //自动显示等待框，默认为true
+							title: '正在加载...', //等待对话框上显示的提示内容
+						}
+					})
+				});
+				
+				//添加进展返回后自动刷新已选日期的实际及计划列表
+window.addEventListener('refreshProList',function(event){
+  //获得事件参数
+  //var id = event.detail.id;
+  //根据id向服务器请求新闻详情
+  console.log("进入自定义事件");
+  					mui.later(function(){
+						console.log("进入删除");
+					var dateSel = document.getElementById("selectDate").innerText;
+					var reg = /^\W+/g;
+					console.log(dateSel.replace(reg,''));
+											//请求当前日期下计划任务
+						var reportbody = "\"{'ParaList':[{'Date':'" + dateSel.replace(reg,'') + "','UserID':'" + myApp.userID + "'}],'FunName':'GetMissionDetail'}\"";
+						myApp.XMLpostRequest(url, reportbody, myApp.getMissionList);
+
+						//请求当前日期下实际进展
+						var reportbody = "\"{'ParaList':[{'Date':'" + dateSel.replace(reg,'') + "','UserID':'" + myApp.userID + "','Refresh':'0'} ], 'FunName': 'GetProgressDetail'}\"";
+						console.log(reportbody);
+						myApp.XMLpostRequest(url, reportbody, myApp.GetProgressList);
+					},500);
+  
+});
+			})(mui);
+			
+		</script>
+	</body>
+
+</html>

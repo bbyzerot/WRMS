@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<script src="js/mui.min.js"></script>
+		<script src="js/jquery-1.11.2.min.js"></script>
+		<script src="js/myApp.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<script type="text/javascript" charset="utf-8">
+			mui.init(
+
+			);
+		</script>
+	</head>
+
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a id="info" class="mui-icon mui-icon-arrowdown mui-pull-right" style="font-size:17px; margin-top: 6px;">操作</a>
+			<h1 class="mui-title">周报详情</h1>
+		</header>
+		<nav class="mui-bar mui-bar-tab" id="cmsNav" style="position: absolute;">
+			<a class="mui-tab-item mui-active" goto1="reportOfWeek.html" id="weekTab">
+				<span class="mui-icon mui-icon-pengyouquan" style="top: 0px;"></span>
+				<span class="mui-tab-label">周报详情</span>
+			</a>
+			<a class="mui-tab-item" goto1="calendarList.html" id="calendarTab">
+				<span class="mui-icon mui-icon-list" style="top: 0px;"></span>
+				<span class="mui-tab-label">任务日历</span>
+			</a>
+			<a class="mui-tab-item" goto1="reportOfDay.html" id="dayTab">
+				<span class="mui-icon mui-icon-starhalf" style="top: 0px;"></span>
+				<span class="mui-tab-label">填写日报</span>
+			</a>
+		</nav>
+
+		<script>
+			var Index = 0;
+			//把子页的路径写在数组里面
+			var subpages = ['reportOfWeek.html', 'calendarList.html', 'reportOfDay.html'];
+			//所有的plus-*方法写在mui.plusReady中或者后面。
+			
+			mui.plusReady(function() {
+
+				setReportFlag();
+				var self = plus.webview.currentWebview();
+
+				for(var i = 0; i < 3; i++) {
+					var sub = plus.webview.create(
+						subpages[i],
+						subpages[i], {
+							top: '0px',
+							bottom: '50px'
+						}
+					);
+					//非首页 隐藏
+					if(i != Index) {
+						sub.hide();
+					}
+
+					self.append(sub);
+
+				};
+
+			});
+
+			var activeTab = subpages[Index],
+				title = document.querySelector(".mui-title");
+			//添加时间监听
+			mui('.mui-bar-tab').on('tap', 'a', function() {
+				//获取目标id
+				var targetTab = this.getAttribute('goto1');
+				//如果的是当前tab,返回
+				if(targetTab == activeTab) {
+					return;
+				}
+				//更换标题
+				title.innerHTML = this.querySelector('.mui-tab-label').innerHTML;
+				//显示目标选项卡
+				plus.webview.show(targetTab);
+				//隐藏当前选项卡
+				plus.webview.hide(activeTab);
+				//更改当前活跃的选项卡
+				activeTab = targetTab;
+			}); //监听on结束
+			
+			//周报提醒 标志设置
+			var setReportFlag = function() {
+					//创建本周 上周 转换标志
+					if(localStorage.lastLoginDay == undefined) {
+						//如果第一次登录,必须请求这周与上周的初始状态
+						thisWeekRequest();
+						pWeekRequest();
+						localStorage.lastLoginDay = new Date(); //如果第一次运行,创建标志,存上次登录日期
+						mui.later(function(){
+							mui.alert('新安的吧?!','系统提醒')
+						},500)
+						
+						//console.log(localStorage.lastLoginDay);
+					} else { //如果不是第一次运行,判断最近一次登录在不在今天所在周.
+						var today = new Date();
+						var dayOfToday = today.getDay();
+						var thisWeekSmall = new Date();
+						var thisWeekBig = new Date();
+						var lastWeekSmall = new Date();
+						var lastWeekBig = new Date();
+						thisWeekSmall.setDate(thisWeekSmall.getDate() - dayOfToday);
+						thisWeekBig.setDate(thisWeekBig.getDate() + (6 - dayOfToday));
+						lastWeekSmall.setDate(lastWeekSmall.getDate() - 7 - dayOfToday);
+						lastWeekBig.setDate(lastWeekBig.getDate() - 7 + (6 - dayOfToday));
+//						console.log('thisWeekBig is:' + Date.parse(thisWeekBig));
+//						console.log('thisWeekSmall is:' + Date.parse(thisWeekSmall));
+//						console.log('lastWeekSmall is:' + Date.parse(lastWeekSmall));
+//						console.log('lastWeekBig is:' + Date.parse(lastWeekBig));
+//						console.log(Date.parse(localStorage.lastLoginDay));
+//						console.log(Date.parse(thisWeekSmall) < Date.parse(localStorage.lastLoginDay));
+//						console.log(Date.parse(thisWeekBig) > Date.parse(localStorage.lastLoginDay));
+//						console.log(Date.parse(thisWeekSmall) < Date.parse(localStorage.lastLoginDay) && Date.parse(thisWeekBig) < Date.parse(localStorage.lastLoginDay));
+						if(Date.parse(thisWeekSmall) <= Date.parse(localStorage.lastLoginDay) && Date.parse(thisWeekBig) >= Date.parse(localStorage.lastLoginDay)) { //这周内
+							localStorage.lastLoginDay = new Date();
+							mui.alert('上次登录时间为 ' + localStorage.lastLoginDay,'系统提醒');
+						} else if(Date.parse(lastWeekSmall) <= Date.parse(localStorage.lastLoginDay) && Date.parse(lastWeekBig) >= Date.parse(localStorage.lastLoginDay)) { //上周内
+							localStorage.pWeekFlag = localStorage.thisWeekFlag;
+							localStorage.thisWeekFlag = 0;
+							localStorage.lastLoginDay = new Date();
+							mui.alert('上次登录时间为 ' + localStorage.lastLoginDay,'系统提醒');
+						} else { //近两周都没登录过
+							localStorage.pWeekFlag = 0;
+							localStorage.thisWeekFlag = 0;
+							localStorage.lastLoginDay = new Date();
+							//console.log(localStorage.lastLoginDay);
+							mui.alert('上次登录时间为 ' + localStorage.lastLoginDay,'系统提醒');
+						}
+						
+					
+						//非第一次运行,标志成功更新后,判断提示消息
+						if(localStorage.pWeekFlag == 0) { //上周未提交周报
+							messageDay();
+						}else{ //这周已保存周报
+							//console.log("上周已提交周报");
+						}
+					}
+				}
+				//请求一下上周周报, 判断是否提交过.
+			var pWeekRequest = function(){
+				var today = new Date();
+				var dayOfToday = today.getDay();
+				var lastWeekBig = new Date();
+				lastWeekBig.setDate(lastWeekBig.getDate() - 7 + (6 - dayOfToday));
+				console.log(lastWeekBig);
+				var pWeekDate = lastWeekBig.getFullYear() + '-' + (lastWeekBig.getMonth() +1) + '-' + lastWeekBig.getDate();
+				var reportbody = "\"{'ParaList':[{'Date':'" + pWeekDate + "','UserID':'" + myApp.userID + "','Refresh':'0'} ], 'FunName': 'GetWeeklyReportDetail'}\"";
+				var xhr = new plus.net.XMLHttpRequest();
+				xhr.responseType = "json";
+				xhr.timeout = 10000;
+				xhr.open("POST", url);
+				// 发送请求
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.send(reportbody);
+				//console.log(body);
+				//console.log(func.toString());
+				xhr.onload = function() {
+
+					var jsonData = mui.parseJSON(xhr.response);
+					//console.log("jsonData:" + jsonData);
+					//console.log('进非周报详情了!!!');
+
+					if(jsonData.ReturnReportList.length == 0) {
+						localStorage.pWeekFlag = 0;
+						messageDay();
+					} else {
+						localStorage.pWeekFlag = 1;
+					}
+				}
+				xhr.timeout = function() {
+					alert('请求超时!请确认网络状态...');
+				}
+
+			}
+			//请求一下这周周报, 判断是否提交过.
+var thisWeekRequest = function(){
+				var today = new Date();
+				var thisWeekDate = today.getFullYear() + '-' + (today.getMonth() +1) + '-' + today.getDate();
+				var reportbody = "\"{'ParaList':[{'Date':'" + thisWeekDate + "','UserID':'" + myApp.userID + "','Refresh':'0'} ], 'FunName': 'GetWeeklyReportDetail'}\"";
+				var xhr = new plus.net.XMLHttpRequest();
+				xhr.responseType = "json";
+				xhr.timeout = 10000;
+				xhr.open("POST", url);
+				// 发送请求
+				xhr.setRequestHeader('Content-Type', 'application/json');
+				xhr.send(reportbody);
+				xhr.onload = function() {
+					var jsonData = mui.parseJSON(xhr.response);
+					if(jsonData.ReturnReportList.length == 0) {
+						localStorage.thisWeekFlag = 0;
+						messageDay();
+					} else {
+						localStorage.thisWeekFlag = 1;
+					}
+				}
+				xhr.timeout = function() {
+					alert('请求超时!请确认网络状态...');
+				}
+
+			}
+			var messageDay = function() {
+				var day = new Date().getDay(); //获取今天星期几 0-6 日-六
+				//console.log(day);
+				console.log("这周未提交周报");
+
+				switch(day) {
+					case 1:
+						//console.log("1111");
+						mui.alert('今天星期一,别忘了提交上周周报哦!', '周报提交体醒!');
+						break;
+					case 2:
+						//console.log("2222");
+						mui.alert('今天星期二了,您还没有提交上周周报!', '周报提交体醒');
+						break;
+					case 3:
+						//console.log("3333");
+						mui.alert('今天星期三!再不提交上周周报,等老大找你喝茶吧!', '周报提交体醒');
+						break;
+					default:
+						mui.alert('上周周报未提交,已无法提交!', '周报提交体醒');
+						break;
+				}
+			}
+		</script>
+
+	</body>
+
+</html>

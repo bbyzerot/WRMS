@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>新增任务</title>
+		<script src="js/mui.min.js"></script>
+		<script src="js/mui.picker.min.js "></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<link rel="stylesheet" href="css/app.css" />
+		<link rel="stylesheet" href="css/mui.picker.min.css" />
+		<script src="js/myApp.js"></script>
+		<script type="text/javascript" charset="UTF-8">
+mui.init({
+	swipeBack: true, //关闭右滑关闭功能,
+
+			});
+		</script>
+	</head>
+	<style>
+			.mui-popover {
+				height: 300px;
+			}
+						.mui-input-row label {
+width: 120px;
+padding: 10px 0 10px 5px;
+}
+.mui-input-row input {
+	padding: 10px 0px 10px 5px;
+float: left !important;
+
+}
+
+
+		</style>
+	<body>
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">新增任务</h1>
+		</header>
+		<div class="mui-content">
+			<div class="mui-content-padded" style="margin: 5px;">
+				<form class="mui-input-group">
+					<div class="mui-input-row">
+						<label>任务名称</label>
+						<input type="text" placeholder="请输入任务名称" id ="MissionName">
+					</div>
+					<div class="mui-input-row">
+						<label>上级任务</label>
+						<label id="missionPN" style="width: 50%;text-align: left;padding: 11px 0px;color: darkgrey;">请选择上级任务</label>
+						
+							<a href="#middlePopover" class="mui-btn mui-btn-primary">选择</a>
+							
+					</div>
+					<div class="mui-input-row">
+						<label>预计开始时间</label>
+						<label id="resultStart" style="width: 50%;text-align: left;padding: 11px 0px;color: darkgrey;">请选择日期</label>
+						<button type="button" id='selectStartDate' data-options='{"type":"date","beginYear":2014,"endYear":2016}' class="btn mui-btn mui-btn-primary" >选择</button>
+										
+				        
+					
+					</div>
+					<div class="mui-input-row">
+						<label>预计结束时间</label>
+						<label id="resultEnd" style="width: 50%;text-align: left;padding: 11px 0px;color: darkgrey;">请选择日期</label>
+				        <button type="button" id='selectEndDate' data-options='{"type":"date","beginYear":2014,"endYear":2016}' class="btn mui-btn mui-btn-primary" >选择</button>
+						
+					</div>
+					<div class="mui-input-row" style="height: 120px;">
+						<label>任务描述</label>
+						<textarea id="description" rows="5" placeholder="请填写任务描述"></textarea>
+					</div>
+					<div class="mui-button-row">
+						<!--<button type="button" class="mui-btn mui-btn-primary" onclick="return false;" style="width: 30%;">提交</button>-->
+						<button type="button" class="mui-btn mui-btn-primary" style="width: 30%;" id = "submit">提交</button>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div id="middlePopover" class="mui-popover">
+			<div class="mui-popover-arrow"></div>
+			<div class="mui-scroll-wrapper">
+				<div class="mui-scroll">
+					<ul class="mui-table-view" id="missionList">
+						
+					</ul>
+				</div>
+			</div>
+
+		</div>
+
+		<script>
+			(function($) {
+				$.init();
+				
+				//进入此页面后铺设今天所有任务及进展的列表#missionList
+						var taskBody = "\"{'ParaList':[{'MissionID':'','UserID':'" +
+						myApp.userID +
+						"'}],'FunName':  'GetMissionInfoForPMs'}\""
+						console.log(taskBody);
+						myApp.XMLpostRequest(url,taskBody, myApp.getMissionList);
+				//				选择预计日期
+				var resultS = $('#resultStart')[0];
+				var resultE = $('#resultEnd')[0];
+							var curY = new Date().getFullYear();
+			var attrStr = '{"type":"date","beginYear":' + (curY -1) + ',"endYear": ' + (curY + 1) + '}';
+			document.getElementById("selectStartDate").setAttribute('data-options', attrStr);
+			document.getElementById("selectEndDate").setAttribute('data-options', attrStr);
+				var btns = $('.btn');
+				mui.plusReady(function(){
+									btns.each(function(i,btn){
+					btn.addEventListener('tap', function() {
+					var optionsJson = this.getAttribute('data-options') || '{}';
+					var options = JSON.parse(optionsJson);
+					var id = this.getAttribute('id');
+					/*
+					 * 首次显示时实例化组件
+					 * 示例为了简洁，将 options 放在了按钮的 dom 上
+					 * 也可以直接通过代码声明 optinos 用于实例化 DtPicker
+					 */
+					var picker = new $.DtPicker(options);
+					picker.show(function(rs) {
+						/*
+						 * rs.value 拼合后的 value
+						 * rs.text 拼合后的 text
+						 * rs.y 年，可以通过 rs.y.vaue 和 rs.y.text 获取值和文本
+						 * rs.m 月，用法同年
+						 * rs.d 日，用法同年
+						 * rs.h 时，用法同年
+						 * rs.i 分（minutes 的第二个字母），用法同年
+						 */
+						if (id == 'selectStartDate') {
+							resultS.innerText = rs.text;
+						}else{
+							resultE.innerText = rs.text;
+						}
+						
+						/* 
+						 * 返回 false 可以阻止选择框的关闭
+						 * return false;
+						 */
+						/*
+						 * 释放组件资源，释放后将将不能再操作组件
+						 * 通常情况下，不需要示放组件，new DtPicker(options) 后，可以一直使用。
+						 * 当前示例，因为内容较多，如不进行资原释放，在某些设备上会较慢。
+						 * 所以每次用完便立即调用 dispose 进行释放，下次用时再创建新实例。
+						 */
+						picker.dispose();
+					});
+				}, false);
+					
+				});
+				
+				//提交事件
+			document.getElementById("submit").addEventListener('tap',function(){
+				
+				//获取当前系统时间.
+				var curDate = new Date();
+				var year = curDate.getFullYear();
+				var month = curDate.getMonth() + 1;
+				var day = curDate.getDate();
+				var weekday=new Array(7);
+				weekday[0]="星期日";
+				weekday[1]="星期一";
+				weekday[2]="星期二";
+				weekday[3]="星期三";
+				weekday[4]="星期四";
+				weekday[5]="星期五";
+				weekday[6]="星期六";
+				var dayOfWeek = weekday[curDate.getDay()];
+				var strMN = document.getElementById("MissionName").value;
+				var strDescription = document.getElementById('description').value;			
+				var strMS = '0';
+				var starD_p = document.getElementById('resultStart').innerText;
+				var endD_p = document.getElementById('resultEnd').innerText;
+				var starD_r = '';
+				var endD_r = '';
+				var strMP = document.getElementById("missionPN").getAttribute('missionPID');
+				console.log(strMP);
+				var cre_p = myApp.userID;
+				var cre_d = year + "." + month + "." + day;
+				//over获取当前系统时间.
+				var reg = /^\W+/g;
+				var strStarD_p = starD_p.replace(reg,'');
+				var strEndD_p = endD_p.replace(reg,'');
+				//任务名称为空不行!
+				if(strMN == "" || strMN == null)
+				{
+					mui.toast('请输入任务名称');				
+				}else if(strStarD_p == "" || strStarD_p == null)
+				{
+					mui.toast('请选择预计开始时间!');				
+				}else if(strEndD_p == "" || strEndD_p == null)
+				{
+					mui.toast('请选择预计结束时间!');				
+				}else {				
+				//新建任务 请求body体(任务名称,描述,状态,预计开始时间,预计结束时间,实际开始时间,实际结束时间,上级任务ID,创建人ID,创建日期)
+				var addMissionBody = "\"{'ParaList':[{'MissionDetail':[{'MISSION_NAME':'" +
+									strMN + 
+									"','DESCRIPTION':'" + 
+									strDescription + 
+									"','MISSION_STATE':'" + 
+									strMS + 
+									"','STRATDATE_PREDICT':'" + 
+									starD_p + 
+									"','ENDDATE_PREDICT':'" + 
+									endD_p + 
+									"','MISSION_PID':'" + 
+									strMP + 
+									"','CRE_PRE':'" + 
+									cre_p + 
+									"','CRE_DATE':'" + 
+									cre_d + 
+									"'}]}],'FunName':'MissionAdd'}\""
+				console.log(addMissionBody);
+				
+				myApp.XMLpostRequestNofun(url, addMissionBody);
+						//获得列表界面的webview
+		var list = plus.webview.getWebviewById('calendarList.html');
+		//触发列表界面的自定义事件（refresh）,从而进行数据刷新
+		mui.fire(list,'refreshMissionList');
+		//返回true，继续页面关闭逻辑
+		//return true;
+				
+				}
+
+			});
+				});
+				
+			mui('.mui-input-row').on('keydown','input',function(e){
+        if(13 == e.keyCode){
+            //点击了“搜索” 
+            console.log("按了 前往");
+            //mui.trigger(document.getElementById("submit"),'tap');
+            return false;
+            
+        }
+   
+			});
+				
+			
+
+			})(mui);
+			mui('.mui-scroll-wrapper').scroll();
+			mui('body').on('shown', '.mui-popover', function(e) {
+				console.log('shown', e.detail.id);//detail为当前popover元素
+			});
+			mui('body').on('hidden', '.mui-popover', function(e) {
+				console.log('hidden', e.detail.id);//detail为当前popover元素
+			});
+		</script>
+		
+	</body>
+
+</html>
